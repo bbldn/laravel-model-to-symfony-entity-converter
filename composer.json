@@ -1,0 +1,25 @@
+{
+    "name": "bbldn/laravel-model-to-symfony-entity-converter",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "BBLDN\\LaravelModelToSymfonyEntityConverter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Boris Bobol",
+            "email": "bobol.boris@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "symfony/console": "^6.2",
+        "nette/php-generator": "^4.0",
+        "phpstan/phpdoc-parser": "^1.15"
+    },
+    "bin": [
+        "converter"
+    ]
+}
