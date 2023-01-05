@@ -2,11 +2,15 @@
 
 namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\MetadataGenerator;
 
+use Nette\PhpGenerator\Literal;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace as ClassNamespace;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\TypeHelper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\StringHelper;
+use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\SimpleType;
+use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasOneType;
+use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
 
 class Generator
 {
@@ -52,22 +56,64 @@ class Generator
             }
             /* Autoincrement | End */
 
-            /* Column | Start */
-            $args = [
-                'name' => StringHelper::toDatabasePropertyName($entityProperty->name),
-            ];
+            $propertyType = $entityProperty->type;
+            switch (get_class($propertyType)) {
+                case SimpleType::class:
+                    /** @var SimpleType $propertyType */
 
-            $type = TypeHelper::getDoctrineType($entityProperty->type->name);
-            if (null !== $type) {
-                $args['type'] = $type;
+                    /* Column | Start */
+                    $args = [
+                        'name' => StringHelper::toDatabasePropertyName($entityProperty->name),
+                    ];
+
+                    $type = TypeHelper::getDoctrineType($propertyType->name);
+                    if (null !== $type) {
+                        $args['type'] = $type;
+                    }
+
+                    if (true === $propertyType->nullable && false === $entityProperty->isPrimary) {
+                        $args['nullable'] = true;
+                    }
+
+                    $classProperty->addAttribute("$ormUse\Column", $args);
+                    /* Column | End */
+
+                    break;
+                case HasOneType::class:
+                    /** @var HasOneType $propertyType */
+
+                    /* ManyToOne | Start */
+                    $classProperty->addAttribute("$ormUse\ManyToOne", [
+                        'targetEntity' => new Literal(
+                            value: sprintf('%s::class', $classNamespace->simplifyName($propertyType->name))
+                        ),
+                    ]);
+                    /* ManyToOne | End */
+
+                    /* JoinColumn | Start */
+                    $classProperty->addAttribute("$ormUse\JoinColumn", [
+                        'name' => StringHelper::toDatabasePropertyName($propertyType->localKey),
+                        'referencedColumnName' => StringHelper::toDatabasePropertyName($propertyType->foreignKey),
+                    ]);
+                    /* JoinColumn | End */
+
+                    break;
+                case HasManyType::class:
+                    /** @var HasManyType $propertyType */
+
+                    /* OneToMany | Start */
+                    $classProperty->addAttribute("$ormUse\OneToMany", [
+                        'orphanRemoval' => true,
+                        'fetch' => 'EXTRA_LAZY',
+                        'cascade' => ['persist', 'remove'],
+                        'targetEntity' => new Literal(
+                            value: sprintf('%s::class', $classNamespace->simplifyType($propertyType->name))
+                        ),
+                    ]);
+                    /* OneToMany | End */
+
+                    break;
             }
-
-            if (true === $entityProperty->type->nullable && false === $entityProperty->isPrimary) {
-                $args['nullable'] = true;
-            }
-
-            $classProperty->addAttribute("$ormUse\Column", $args);
-            /* Column | End */
         }
     }
 }
