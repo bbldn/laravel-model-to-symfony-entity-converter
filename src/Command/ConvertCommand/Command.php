@@ -4,18 +4,14 @@ namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand;
 
 use ReflectionClass;
 use Composer\Autoload\ClassLoader;
-use PHPStan\PhpDocParser\Lexer\Lexer;
-use PHPStan\PhpDocParser\Parser\TypeParser;
-use PHPStan\PhpDocParser\Parser\PhpDocParser;
-use PHPStan\PhpDocParser\Parser\TokenIterator;
-use PHPStan\PhpDocParser\Parser\ConstExprParser;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Command\Command as Base;
 use Symfony\Component\Console\Output\OutputInterface;
-use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\Generator as ClassGenerator;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
-use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\ReflectionFiller;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Filler as AstFiller;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\Generator as ClassGenerator;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\ReflectionFiller\Filler as ReflectionFiller;
 
 class Command extends Base
 {
@@ -30,33 +26,11 @@ class Command extends Base
     }
 
     /**
-     * @return PhpDocParser
-     */
-    private function createPhpDocParser(): PhpDocParser
-    {
-        $constExprParser = new ConstExprParser();
-        $typeParser = new TypeParser($constExprParser);
-
-        return new PhpDocParser($typeParser, $constExprParser);
-    }
-
-    private function fillByPhpDoc(Entity $entity, ReflectionClass $reflectionClass): void
-    {
-        $lexer = new Lexer();
-        $tokens = $lexer->tokenize($reflectionClass->getDocComment());
-        $phpDocParser = $this->createPhpDocParser();
-        $node = $phpDocParser->parse(new TokenIterator($tokens));
-        //$node->children
-    }
-
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
+     * @return void
      *
      * @noinspection PhpDocMissingThrowsInspection
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    private function action1(): void
     {
         $namespace = 'App\Common\Domain\Model';
 
@@ -64,6 +38,7 @@ class Command extends Base
         $classLoader = require 'vendor/autoload.php';
 
         $reflectionFiller = new ReflectionFiller();
+        $astFiller = new AstFiller();
 
         $entityList = [];
         foreach ($classLoader->getClassMap() as $className => $ignored) {
@@ -72,8 +47,10 @@ class Command extends Base
                 $reflectionClass = new ReflectionClass($className);
 
                 $entity = new Entity($reflectionClass->getShortName());
+                $reflectionFiller->fill($entity, $reflectionClass);
+                $astFiller->fill($entity, $reflectionClass);
 
-                if (true === $reflectionFiller->fill($entity, $reflectionClass)) {
+                if (count($entity->properties) > 0) {
                     $entityList[] = $entity;
                 }
             }
@@ -86,6 +63,16 @@ class Command extends Base
 
             file_put_contents($path, $classText);
         }
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $this->action1();
 
         return self::SUCCESS;
     }

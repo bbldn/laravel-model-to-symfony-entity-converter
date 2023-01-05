@@ -1,14 +1,15 @@
 <?php
 
-namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler;
+namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\ReflectionFiller;
 
 use ReflectionClass;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Property;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\TypeHelper;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\SimpleType;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelModelEnum;
 
-class ReflectionFiller
+class Filler
 {
     /**
      * @param ReflectionClass $reflectionClass
@@ -23,7 +24,7 @@ class ReflectionFiller
         return (
             false === $reflectionClass->isAbstract()
             && false === $reflectionClass->isInterface()
-            && true === $reflectionClass->isSubclassOf(\Illuminate\Database\Eloquent\Model::class)
+            && true === $reflectionClass->isSubclassOf('Illuminate\Database\Eloquent\Model')
         );
     }
 
@@ -57,9 +58,9 @@ class ReflectionFiller
                     $primaryKey = (string)$primaryKey;
                     if (false === key_exists($primaryKey, $entity->properties)) {
                         $entity->properties[$primaryKey] = new Property(
-                            type: 'int',
-                            name: $primaryKey,
                             isPrimary: true,
+                            name: $primaryKey,
+                            type: new SimpleType('int'),
                         );
                     } else {
                         $entity->properties[$primaryKey]->isPrimary = true;
@@ -99,8 +100,8 @@ class ReflectionFiller
                     foreach ($fillable as $propertyName) {
                         if (false === key_exists($propertyName, $entity->properties)) {
                             $entity->properties[$propertyName] = new Property(
-                                type: 'string',
                                 name: $propertyName,
+                                type: new SimpleType('string'),
                             );
                         }
                     }
@@ -127,11 +128,11 @@ class ReflectionFiller
                         if (null !== $type) {
                             if (false === key_exists($propertyName, $entity->properties)) {
                                 $entity->properties[$propertyName] = new Property(
-                                    type: $type,
                                     name: $propertyName,
+                                    type: new SimpleType($type),
                                 );
                             } else {
-                                $entity->properties[$propertyName]->type = $type;
+                                $entity->properties[$propertyName]->type = new SimpleType($type);
                             }
                         }
                     }
@@ -143,19 +144,15 @@ class ReflectionFiller
     /**
      * @param Entity $entity
      * @param ReflectionClass $reflectionClass
-     * @return bool
+     * @return void
      */
-    public function fill(Entity $entity, ReflectionClass $reflectionClass): bool
+    public function fill(Entity $entity, ReflectionClass $reflectionClass): void
     {
         if (true === $this->validate($reflectionClass)) {
             $this->fillTable($entity, $reflectionClass);
             $this->fillByCast($entity, $reflectionClass);
             $this->fillByFillable($entity, $reflectionClass);
             $this->fillPrimaryKey($entity, $reflectionClass);
-
-            return true;
         }
-
-        return false;
     }
 }

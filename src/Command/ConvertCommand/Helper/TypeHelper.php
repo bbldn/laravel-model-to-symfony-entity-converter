@@ -4,6 +4,7 @@ namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Help
 
 use DateTime;
 use DateTimeImmutable;
+use Nette\PhpGenerator\Literal;
 
 final class TypeHelper
 {
@@ -53,6 +54,37 @@ final class TypeHelper
 
         if (true === key_exists($type, self::$simpleTypeMap)) {
             return self::$simpleTypeMap[$type];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $type
+     * @return Literal|null
+     */
+    public static function getDoctrineType(string $type): ?Literal
+    {
+        $map = [
+            'int' => 'Types::INTEGER',
+            'bool' => 'Types::BOOLEAN',
+            'float' => 'Types::FLOAT',
+            'integer' => 'Types::INTEGER',
+            'boolean' => 'Types::BOOLEAN',
+            'double' => 'Types::FLOAT',
+            'string' => 'Types::STRING',
+            'date' => 'Types::DATETIME_IMMUTABLE',
+            'real' => 'Types::DATETIME_IMMUTABLE',
+            'datetime' => 'Types::DATETIME_IMMUTABLE',
+            'timestamp' => 'Types::DATETIME_IMMUTABLE',
+            DateTime::class => 'Types::DATETIME_IMMUTABLE',
+            'immutable_date' => 'Types::DATETIME_IMMUTABLE',
+            'immutable_datetime' => 'Types::DATETIME_IMMUTABLE',
+            DateTimeImmutable::class => 'Types::DATETIME_IMMUTABLE',
+        ];
+
+        if (true === key_exists($type, $map)) {
+            return new Literal($map[$type]);
         }
 
         return null;

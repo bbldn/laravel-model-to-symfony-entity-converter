@@ -7,7 +7,7 @@ final class Entity
     /**
      * @param string $name
      * @param string $table
-     * @param list<Property> $properties
+     * @param array<string, Property> $properties
      */
     public function __construct(
         public string $name,
