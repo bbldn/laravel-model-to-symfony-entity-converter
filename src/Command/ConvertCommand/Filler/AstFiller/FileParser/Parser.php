@@ -35,8 +35,10 @@ class Parser
             return null;
         }
 
-        if (true === key_exists(0, $ast)) {
-            return $ast[0];
+        if (null !== $ast) {
+            if (true === key_exists(0, $ast)) {
+                return $ast[0];
+            }
         }
 
         return null;

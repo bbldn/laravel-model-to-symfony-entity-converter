@@ -6,8 +6,8 @@ use ReflectionClass;
 use Composer\Autoload\ClassLoader;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Command\Command as Base;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Command\Command as Base;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Filler as AstFiller;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\Generator as ClassGenerator;
@@ -26,11 +26,14 @@ class Command extends Base
     }
 
     /**
-     * @return void
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
      *
      * @noinspection PhpDocMissingThrowsInspection
+     * @noinspection PhpUnhandledExceptionInspection
      */
-    private function action1(): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $namespace = 'App\Common\Domain\Model';
 
@@ -43,7 +46,7 @@ class Command extends Base
         $entityList = [];
         foreach ($classLoader->getClassMap() as $className => $ignored) {
             if (true === str_starts_with($className, $namespace)) {
-                /** @noinspection PhpUnhandledExceptionInspection */
+                /** @psalm-var class-string $className */
                 $reflectionClass = new ReflectionClass($className);
 
                 $entity = new Entity($reflectionClass->getShortName());
@@ -63,16 +66,6 @@ class Command extends Base
 
             file_put_contents($path, $classText);
         }
-    }
-
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return int
-     */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $this->action1();
 
         return self::SUCCESS;
     }

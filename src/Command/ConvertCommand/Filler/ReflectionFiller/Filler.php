@@ -7,6 +7,7 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Property;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\TypeHelper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\SimpleType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelTypeEnum;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelModelEnum;
 
 class Filler
@@ -14,17 +15,13 @@ class Filler
     /**
      * @param ReflectionClass $reflectionClass
      * @return bool
-     * @noinspection RedundantSuppression
-     * @noinspection PhpUndefinedClassInspection
-     * @noinspection PhpUndefinedNamespaceInspection
-     * @noinspection PhpFullyQualifiedNameUsageInspection
      */
     private function validate(ReflectionClass $reflectionClass): bool
     {
         return (
             false === $reflectionClass->isAbstract()
             && false === $reflectionClass->isInterface()
-            && true === $reflectionClass->isSubclassOf('Illuminate\Database\Eloquent\Model')
+            && true === $reflectionClass->isSubclassOf(LaravelTypeEnum::MODEL)
         );
     }
 

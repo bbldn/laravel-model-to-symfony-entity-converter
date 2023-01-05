@@ -44,9 +44,9 @@ class Generator
         }
 
         foreach ($classType->getProperties() as $classProperty) {
-            $type = $classProperty->getType();
             $nullable = $classProperty->isNullable();
             $propertyName = $classProperty->getName();
+            $type = (string)$classProperty->getType();
 
             if (false === key_exists($propertyName, $collectionFieldMap)) {
                 $doctypeType = $classNamespace->simplifyName($type);

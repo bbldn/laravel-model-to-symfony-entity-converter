@@ -16,6 +16,9 @@ final class Helper
      * @param string $type
      * @param string $expectedType
      * @return bool
+     *
+     * @psalm-param class-string $type
+     * @psalm-param class-string $expectedType
      */
     public static function checkType(string $type, string $expectedType): bool
     {

@@ -8,6 +8,7 @@ use PhpParser\Node\Stmt\Use_ as StmtUse;
 use PhpParser\Node\Stmt\Class_ as StmtClass;
 use PhpParser\Node\Stmt\Namespace_ as StmtNamespace;
 use PhpParser\Node\Stmt\ClassMethod as StmtClassMethod;
+use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelTypeEnum;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\DTO\ClassItem;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Helper\Helper;
@@ -47,19 +48,16 @@ class Parser
     private function parseUse(StmtUse $stmtUse, ClassItem $classItem): void
     {
         foreach ($stmtUse->uses as $useUse) {
-            $useName = $useUse->name;
-            if (null !== $useName) {
-                $parts = $useName->parts;
+            $parts = $useUse->name->parts;
 
-                $namespace = implode('\\', $parts);
-                $classItem->useMap[$namespace] = $namespace;
+            $namespace = implode('\\', $parts);
+            $classItem->useMap[$namespace] = $namespace;
 
-                $alias = $useUse->alias;
-                if (null === $alias) {
-                    $classItem->useMap[$parts[count($parts) - 1]] = $namespace;
-                } else {
-                    $classItem->useMap[$alias->name] = $namespace;
-                }
+            $alias = $useUse->alias;
+            if (null === $alias) {
+                $classItem->useMap[$parts[count($parts) - 1]] = $namespace;
+            } else {
+                $classItem->useMap[$alias->name] = $namespace;
             }
         }
     }
@@ -91,12 +89,13 @@ class Parser
 
             /** @var NodeName $type */
 
+            /** @psalm-var class-string $useType */
             $useType = Helper::resolveClassName(implode('\\', $type->parts), $classItem);
             switch (true) {
-                case Helper::checkType($useType, 'Illuminate\Database\Eloquent\Relations\HasOne'):
+                case Helper::checkType($useType, LaravelTypeEnum::HAS_ONE):
                     $this->hasOneMethodParser->parse($entity, $classItem, $stmtClassMethod);
                     break;
-                case Helper::checkType($useType, 'Illuminate\Database\Eloquent\Relations\HasMany'):
+                case Helper::checkType($useType, LaravelTypeEnum::HAS_MANY):
                     $this->hasManyMethodParser->parse($entity, $classItem, $stmtClassMethod);
                     break;
             }

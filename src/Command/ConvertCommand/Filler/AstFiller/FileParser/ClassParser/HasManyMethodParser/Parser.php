@@ -88,7 +88,7 @@ class Parser
     ): void
     {
         $methodName = $stmtClassMethod->name->name;
-        foreach ($stmtClassMethod->stmts as $stmt) {
+        foreach ($stmtClassMethod->stmts ?? [] as $stmt) {
             if (false === is_a($stmt, StmtReturn::class)) {
                 continue;
             }
