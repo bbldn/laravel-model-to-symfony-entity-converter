@@ -1,6 +1,6 @@
 <?php
 
-namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasOneMethodParser;
+namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasMethodParser;
 
 use ReflectionClass;
 use PhpParser\Node\Arg as NodeArg;
@@ -12,35 +12,21 @@ use PhpParser\Node\Stmt\ClassMethod as StmtClassMethod;
 use PhpParser\Node\VariadicPlaceholder as NodeVariadicPlaceholder;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Property;
-use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasOneType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\Type;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\DTO\ClassItem;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Helper\Helper;
 
-class Parser
+abstract class Parser
 {
+    protected string $methodName = '';
+
     /**
-     * @param string $type
-     * @param string $oldNamespace
-     * @param string $newNamespace
-     * @return string
-     *
-     * @psalm-param class-string $type
-     *
-     * @noinspection PhpDocMissingThrowsInspection
-     * @noinspection PhpUnhandledExceptionInspection
+     * @param string $name
+     * @param string $localKey
+     * @param string $foreignKey
+     * @return Type
      */
-    private function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
-    {
-        $reflectionClass = new ReflectionClass($type);
-
-        $oldNamespace = trim($oldNamespace, '\\');
-        $currentNamespace = trim($reflectionClass->getNamespaceName(), '\\');
-        if ($currentNamespace !== $oldNamespace) {
-            return $type;
-        }
-
-        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getName();
-    }
+    abstract protected function createType(string $name, string $localKey, string $foreignKey): Type;
 
     /**
      * @param Entity $entity
@@ -49,7 +35,7 @@ class Parser
      * @param array<NodeArg|NodeVariadicPlaceholder> $args
      * @return void
      */
-    private function parseArgs(
+    protected function parseArgs(
         array $args,
         Entity $entity,
         string $methodName,
@@ -98,7 +84,7 @@ class Parser
 
         $entity->properties[$methodName] = new Property(
             name: $methodName,
-            type: new HasOneType($typeName, $localKey, $foreignKey),
+            type: $this->createType($typeName, $localKey, $foreignKey),
         );
 
         if (true === key_exists($localKey, $entity->properties)) {
@@ -106,6 +92,30 @@ class Parser
                 unset($entity->properties[$localKey]);
             }
         }
+    }
+
+    /**
+     * @param string $type
+     * @param string $oldNamespace
+     * @param string $newNamespace
+     * @return string
+     *
+     * @psalm-param class-string $type
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @noinspection PhpUnhandledExceptionInspection
+     */
+    protected function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
+    {
+        $reflectionClass = new ReflectionClass($type);
+
+        $oldNamespace = trim($oldNamespace, '\\');
+        $currentNamespace = trim($reflectionClass->getNamespaceName(), '\\');
+        if ($currentNamespace !== $oldNamespace) {
+            return $type;
+        }
+
+        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getName();
     }
 
     /**
@@ -120,40 +130,43 @@ class Parser
         StmtClassMethod $stmtClassMethod,
     ): void
     {
-        $methodName = $stmtClassMethod->name->name;
-        foreach ($stmtClassMethod->stmts ?? [] as $stmt) {
-            if (false === is_a($stmt, StmtReturn::class)) {
-                continue;
-            }
+        $stmts = $stmtClassMethod->stmts;
+        if (null !== $stmts) {
+            $methodName = $stmtClassMethod->name->name;
+            foreach ($stmts as $stmt) {
+                if (false === is_a($stmt, StmtReturn::class)) {
+                    continue;
+                }
 
-            /** @var StmtReturn $stmt */
-            $expr = $stmt->expr;
-            if (false === is_a($expr, ExprMethodCall::class)) {
-                continue;
-            }
+                /** @var StmtReturn $stmt */
+                $expr = $stmt->expr;
+                if (false === is_a($expr, ExprMethodCall::class)) {
+                    continue;
+                }
 
-            /** @var ExprMethodCall $expr */
-            $var = $expr->var;
-            if (false === is_a($var, ExprVariable::class)) {
-                continue;
-            }
+                /** @var ExprMethodCall $expr */
+                $var = $expr->var;
+                if (false === is_a($var, ExprVariable::class)) {
+                    continue;
+                }
 
-            /** @var ExprVariable $var */
-            if ('this' !== $var->name) {
-                continue;
-            }
+                /** @var ExprVariable $var */
+                if ('this' !== $var->name) {
+                    continue;
+                }
 
-            $name = $expr->name;
-            if (false === is_a($name, NodeIdentifier::class)) {
-                continue;
-            }
+                $name = $expr->name;
+                if (false === is_a($name, NodeIdentifier::class)) {
+                    continue;
+                }
 
-            /** @var NodeIdentifier $name */
-            if ('hasOne' !== $name->name) {
-                continue;
-            }
+                /** @var NodeIdentifier $name */
+                if ($this->methodName !== $name->name) {
+                    continue;
+                }
 
-            $this->parseArgs($expr->args, $entity, $methodName, $classItem);
+                $this->parseArgs($expr->args, $entity, $methodName, $classItem);
+            }
         }
     }
 }

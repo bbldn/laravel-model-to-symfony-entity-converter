@@ -12,8 +12,8 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelTypeEnum;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\DTO\ClassItem;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Helper\Helper;
-use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasOneMethodParser\Parser as HasOneMethodParser;
-use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasManyMethodParser\Parser as HasManyMethodParser;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasMethodParser\HasOneMethodParser\Parser as HasOneMethodParser;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasMethodParser\HasManyMethodParser\Parser as HasManyMethodParser;
 
 class Parser
 {
