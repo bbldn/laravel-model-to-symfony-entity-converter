@@ -64,6 +64,8 @@ abstract class Parser
             return;
         }
 
+        /** @psalm-var class-string $typeName */
+
         $localKey = Helper::parseNodeValue($thirdArg->value, $classItem);
         if (null === $localKey) {
             return;
@@ -74,7 +76,6 @@ abstract class Parser
             return;
         }
 
-        /** @psalm-var class-string $typeName */
         $typeName = $this->convertNamespace(
             type: $typeName,
             newNamespace: $entity->newNamespace,
