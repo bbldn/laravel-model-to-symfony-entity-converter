@@ -5,12 +5,14 @@ namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Fill
 final class ClassItem
 {
     /**
-     * @param string $namespace
+     * @param string $newNamespace
+     * @param string $currentNamespace
      * @param array<string, string> $useMap
      */
     public function __construct(
         public array $useMap = [],
-        public string $namespace = '',
+        public string $newNamespace = '',
+        public string $currentNamespace = '',
     )
     {
     }

@@ -2,6 +2,7 @@
 
 namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasOneMethodParser;
 
+use ReflectionClass;
 use PhpParser\Node\Arg as NodeArg;
 use PhpParser\Node\Stmt\Return_ as StmtReturn;
 use PhpParser\Node\Identifier as NodeIdentifier;
@@ -17,6 +18,30 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\Ast
 
 class Parser
 {
+    /**
+     * @param string $type
+     * @param string $oldNamespace
+     * @param string $newNamespace
+     * @return string
+     *
+     * @psalm-param class-string $type
+     *
+     * @noinspection PhpDocMissingThrowsInspection
+     * @noinspection PhpUnhandledExceptionInspection
+     */
+    private function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
+    {
+        $reflectionClass = new ReflectionClass($type);
+
+        $oldNamespace = trim($oldNamespace, '\\');
+        $currentNamespace = trim($reflectionClass->getNamespaceName(), '\\');
+        if ($currentNamespace !== $oldNamespace) {
+            return $type;
+        }
+
+        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getName();
+    }
+
     /**
      * @param Entity $entity
      * @param string $methodName
@@ -62,6 +87,14 @@ class Parser
         if (null === $foreignKey) {
             return;
         }
+
+        /** @psalm-var class-string $typeName */
+        $typeName = Helper::resolveClassName($typeName, $classItem);
+        $typeName = $this->convertNamespace(
+            type: $typeName,
+            newNamespace: $entity->newNamespace,
+            oldNamespace: $classItem->currentNamespace,
+        );
 
         $entity->properties[$methodName] = new Property(
             name: $methodName,

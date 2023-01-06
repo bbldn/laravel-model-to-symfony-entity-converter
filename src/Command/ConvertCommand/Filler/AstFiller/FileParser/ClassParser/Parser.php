@@ -8,8 +8,8 @@ use PhpParser\Node\Stmt\Use_ as StmtUse;
 use PhpParser\Node\Stmt\Class_ as StmtClass;
 use PhpParser\Node\Stmt\Namespace_ as StmtNamespace;
 use PhpParser\Node\Stmt\ClassMethod as StmtClassMethod;
-use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelTypeEnum;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\LaravelTypeEnum;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\DTO\ClassItem;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\Helper\Helper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasOneMethodParser\Parser as HasOneMethodParser;
@@ -36,7 +36,7 @@ class Parser
     {
         $name = $stmtNamespace->name;
         if (null !== $name) {
-            $classItem->namespace = implode('\\', $name->parts);
+            $classItem->currentNamespace = implode('\\', $name->parts);
         }
     }
 
@@ -116,7 +116,7 @@ class Parser
         /** @var StmtNamespace $namespaceStmt */
         $namespaceStmt = $stmt;
 
-        $classItem = new ClassItem();
+        $classItem = new ClassItem(newNamespace: $entity->newNamespace);
 
         $this->parseNamespace($classItem, $namespaceStmt);
 

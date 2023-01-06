@@ -70,7 +70,7 @@ final class Helper
             return $useMap[$className];
         }
 
-        $currentNamespace = $classItem->namespace;
+        $currentNamespace = $classItem->currentNamespace;
         if (mb_strlen($currentNamespace) > 0) {
             return "$currentNamespace\\$className";
         }

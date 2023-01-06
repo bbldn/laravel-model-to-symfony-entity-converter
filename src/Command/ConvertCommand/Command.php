@@ -35,21 +35,25 @@ class Command extends Base
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $namespace = 'App\Common\Domain\Model';
+        $currentNamespace = 'App\Common\Domain\Model';
+        $newNamespace = 'App\Common\Domain\DoctrineEntity';
 
         /** @var ClassLoader $classLoader */
         $classLoader = require 'vendor/autoload.php';
 
-        $reflectionFiller = new ReflectionFiller();
         $astFiller = new AstFiller();
+        $reflectionFiller = new ReflectionFiller();
 
         $entityList = [];
         foreach ($classLoader->getClassMap() as $className => $ignored) {
-            if (true === str_starts_with($className, $namespace)) {
+            if (true === str_starts_with($className, $currentNamespace)) {
                 /** @psalm-var class-string $className */
                 $reflectionClass = new ReflectionClass($className);
 
-                $entity = new Entity($reflectionClass->getShortName());
+                $entity = new Entity(
+                    newNamespace: $newNamespace,
+                    name: $reflectionClass->getShortName(),
+                );
                 $reflectionFiller->fill($entity, $reflectionClass);
                 $astFiller->fill($entity, $reflectionClass);
 
@@ -61,7 +65,7 @@ class Command extends Base
 
         $classGenerator = new ClassGenerator();
         foreach ($entityList as $entity) {
-            $classText = $classGenerator->generate('App\Common\Domain\DoctrineEntity', $entity);
+            $classText = $classGenerator->generate($newNamespace, $entity);
             $path = "/home/user/PhpstormProjects/DirectLine/FlowersDelivery/FlowersDeliveryViewerTest/app/Common/Domain/DoctrineEntity/$entity->name.php";
 
             file_put_contents($path, $classText);
