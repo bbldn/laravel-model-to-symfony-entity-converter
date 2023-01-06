@@ -87,11 +87,18 @@ class Generator
                     /** @var HasOneType $propertyType */
 
                     /* ManyToOne | Start */
-                    $classProperty->addAttribute(DoctrineEntityEnum::MANY_TO_ONE, [
+                    $args = [
                         'targetEntity' => new Literal(
                             value: sprintf('%s::class', $classNamespace->simplifyName($propertyType->name))
                         ),
-                    ]);
+                    ];
+
+                    $inversedBy = $propertyType->inversedBy;
+                    if (null !== $inversedBy) {
+                        $args['inversedBy'] = $inversedBy;
+                    }
+
+                    $classProperty->addAttribute(DoctrineEntityEnum::MANY_TO_ONE, $args);
                     /* ManyToOne | End */
 
                     /* JoinColumn | Start */
@@ -106,14 +113,21 @@ class Generator
                     /** @var HasManyType $propertyType */
 
                     /* OneToMany | Start */
-                    $classProperty->addAttribute(DoctrineEntityEnum::ONE_TO_MANY, [
+                    $args = [
                         'orphanRemoval' => true,
                         'fetch' => 'EXTRA_LAZY',
                         'cascade' => ['persist', 'remove'],
                         'targetEntity' => new Literal(
                             value: sprintf('%s::class', $classNamespace->simplifyType($propertyType->name))
                         ),
-                    ]);
+                    ];
+
+                    $mappedBy = $propertyType->mappedBy;
+                    if (null !== $mappedBy) {
+                        $args['mappedBy'] = $mappedBy;
+                    }
+
+                    $classProperty->addAttribute(DoctrineEntityEnum::ONE_TO_MANY, $args);
                     /* OneToMany | End */
 
                     break;
