@@ -8,6 +8,7 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\TypeHelper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\StringHelper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\DoctrineTypeEnum;
 
 class Generator
 {
@@ -34,9 +35,8 @@ class Generator
 
             if (true === is_a($type, HasManyType::class)) {
                 $doctypeType = $classNamespace->simplifyName($type->name);
-                $collectionTypeName = 'Doctrine\Common\Collections\Collection';
-                $classNamespace->addUse($collectionTypeName);
-                $classProperty = $classType->addProperty($name)->setPrivate()->setType($collectionTypeName);
+                $classNamespace->addUse(DoctrineTypeEnum::COLLECTION);
+                $classProperty = $classType->addProperty($name)->setPrivate()->setType(DoctrineTypeEnum::COLLECTION);
                 $classProperty->addComment("@var Collection<int, $doctypeType>");
             } else {
                 $classProperty = $classType->addProperty($name)->setPrivate()->setType($typeName);

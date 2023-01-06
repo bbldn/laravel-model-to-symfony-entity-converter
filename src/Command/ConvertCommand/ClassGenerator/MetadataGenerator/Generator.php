@@ -8,9 +8,11 @@ use Nette\PhpGenerator\PhpNamespace as ClassNamespace;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\TypeHelper;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper\StringHelper;
-use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\SimpleType;
-use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasOneType;
-use \BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\SimpleType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasOneType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\DoctrineTypeEnum;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\DoctrineEntityEnum;
 
 class Generator
 {
@@ -26,15 +28,17 @@ class Generator
         ClassNamespace $classNamespace
     ): void
     {
-        if (count($classType->getProperties()) > 0) {
-            $classNamespace->addUse('Doctrine\DBAL\Types\Types');
+        if (0 === count($classType->getProperties())) {
+            return;
         }
 
-        $ormUse = 'Doctrine\ORM\Mapping';
-        $classNamespace->addUse($ormUse, 'ORM');
+        $classNamespace->addUse(DoctrineTypeEnum::TYPES);
+        $classNamespace->addUse(DoctrineEntityEnum::NAMESPACE, 'ORM');
 
-        $classType->addAttribute("$ormUse\Entity");
-        $classType->addAttribute("$ormUse\Table", ['name' => StringHelper::toDatabasePropertyName($entity->table)]);
+        $classType->addAttribute(DoctrineEntityEnum::ENTITY);
+        $classType->addAttribute(DoctrineEntityEnum::TABLE, [
+            'name' => StringHelper::toDatabasePropertyName($entity->table)
+        ]);
 
         foreach ($classType->getProperties() as $classProperty) {
             $name = StringHelper::camelCaseToSnakeCase($classProperty->getName());
@@ -46,13 +50,13 @@ class Generator
 
             /* Primary Key | Start */
             if (true === $entityProperty->isPrimary) {
-                $classProperty->addAttribute("$ormUse\Id");
+                $classProperty->addAttribute(DoctrineEntityEnum::ID);
             }
             /* Primary Key | End */
 
             /* Autoincrement | Start */
             if (true === $entityProperty->autoincrement) {
-                $classProperty->addAttribute("$ormUse\GeneratedValue");
+                $classProperty->addAttribute(DoctrineEntityEnum::GENERATED_VALUE);
             }
             /* Autoincrement | End */
 
@@ -75,7 +79,7 @@ class Generator
                         $args['nullable'] = true;
                     }
 
-                    $classProperty->addAttribute("$ormUse\Column", $args);
+                    $classProperty->addAttribute(DoctrineEntityEnum::COLUMN, $args);
                     /* Column | End */
 
                     break;
@@ -83,7 +87,7 @@ class Generator
                     /** @var HasOneType $propertyType */
 
                     /* ManyToOne | Start */
-                    $classProperty->addAttribute("$ormUse\ManyToOne", [
+                    $classProperty->addAttribute(DoctrineEntityEnum::MANY_TO_ONE, [
                         'targetEntity' => new Literal(
                             value: sprintf('%s::class', $classNamespace->simplifyName($propertyType->name))
                         ),
@@ -91,7 +95,7 @@ class Generator
                     /* ManyToOne | End */
 
                     /* JoinColumn | Start */
-                    $classProperty->addAttribute("$ormUse\JoinColumn", [
+                    $classProperty->addAttribute(DoctrineEntityEnum::JOIN_COLUMN, [
                         'name' => StringHelper::toDatabasePropertyName($propertyType->localKey),
                         'referencedColumnName' => StringHelper::toDatabasePropertyName($propertyType->foreignKey),
                     ]);
@@ -102,7 +106,7 @@ class Generator
                     /** @var HasManyType $propertyType */
 
                     /* OneToMany | Start */
-                    $classProperty->addAttribute("$ormUse\OneToMany", [
+                    $classProperty->addAttribute(DoctrineEntityEnum::ONE_TO_MANY, [
                         'orphanRemoval' => true,
                         'fetch' => 'EXTRA_LAZY',
                         'cascade' => ['persist', 'remove'],

@@ -6,6 +6,7 @@ use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace as ClassNamespace;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Enum\DoctrineTypeEnum;
 
 class Generator
 {
@@ -33,11 +34,14 @@ class Generator
         }
 
         if (count($collectionFieldMap) > 0) {
-            $classNamespace->addUse('Doctrine\Common\Collections\ArrayCollection');
+            $classNamespace->addUse(DoctrineTypeEnum::ARRAY_COLLECTION);
 
             $list = [];
             foreach ($collectionFieldMap as $field => $ignored) {
-                $list[] = "\$this->$field = new ArrayCollection();";
+                $list[] = vsprintf(
+                    format: '$this->%s = new %s();',
+                    values: [$field, $classNamespace->simplifyName(DoctrineTypeEnum::ARRAY_COLLECTION)]
+                );
             }
 
             $classType->addMethod('__construct')->setPublic()->setBody(implode(PHP_EOL, $list));
