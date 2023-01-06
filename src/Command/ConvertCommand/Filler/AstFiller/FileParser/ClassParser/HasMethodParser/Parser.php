@@ -35,7 +35,7 @@ abstract class Parser
      * @param array<NodeArg|NodeVariadicPlaceholder> $args
      * @return void
      */
-    protected function parseArgs(
+    private function parseArgs(
         array $args,
         Entity $entity,
         string $methodName,
@@ -75,7 +75,6 @@ abstract class Parser
         }
 
         /** @psalm-var class-string $typeName */
-        $typeName = Helper::resolveClassName($typeName, $classItem);
         $typeName = $this->convertNamespace(
             type: $typeName,
             newNamespace: $entity->newNamespace,
@@ -105,7 +104,7 @@ abstract class Parser
      * @noinspection PhpDocMissingThrowsInspection
      * @noinspection PhpUnhandledExceptionInspection
      */
-    protected function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
+    private function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
     {
         $reflectionClass = new ReflectionClass($type);
 
@@ -115,7 +114,7 @@ abstract class Parser
             return $type;
         }
 
-        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getName();
+        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getShortName();
     }
 
     /**
