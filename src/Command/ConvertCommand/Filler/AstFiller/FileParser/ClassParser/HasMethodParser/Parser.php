@@ -91,9 +91,9 @@ abstract class Parser
             type: $this->createType($typeName, $localKey, $foreignKey),
         );
 
-        if (true === key_exists($localKey, $entity->properties)) {
-            $entity->properties[$methodName]->isPrimary = $entity->properties[$localKey]->isPrimary;
-            if (true === $this->needRemoveProperty()) {
+        if (true === $this->needRemoveProperty()) {
+            if (true === key_exists($localKey, $entity->properties)) {
+                $entity->properties[$methodName]->isPrimary = $entity->properties[$localKey]->isPrimary;
                 unset($entity->properties[$localKey]);
             }
         }

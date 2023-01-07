@@ -4,6 +4,7 @@ namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Clas
 
 use Nette\PhpGenerator\PhpFile;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
+use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\Printer\PsrPrinter;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\MethodsGenerator\Generator as MethodsGenerator;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\ClassGenerator\MetadataGenerator\Generator as MetadataGenerator;
@@ -28,12 +29,44 @@ class Generator
     }
 
     /**
+     * @param Entity $entity
+     * @return void
+     */
+    private function sortProperties(Entity $entity): void
+    {
+        $properties = [];
+        foreach ($entity->properties as $propertyName => $property) {
+            if (true === $property->isPrimary) {
+                $properties[$propertyName] = $property;
+            }
+        }
+
+        foreach ($entity->properties as $propertyName => $property) {
+            if (false === $property->isPrimary) {
+                if (false === is_a($property->type, HasManyType::class)) {
+                    $properties[$propertyName] = $property;
+                }
+            }
+        }
+
+        foreach ($entity->properties as $propertyName => $property) {
+            if (true === is_a($property->type, HasManyType::class)) {
+                $properties[$propertyName] = $property;
+            }
+        }
+
+        $entity->properties = $properties;
+    }
+
+    /**
      * @param string $namespace
      * @param Entity $entity
      * @return string
      */
     public function generate(string $namespace, Entity $entity): string
     {
+        $this->sortProperties($entity);
+
         $phpFile = new PhpFile;
 
         $classNamespace = $phpFile->addNamespace($namespace);

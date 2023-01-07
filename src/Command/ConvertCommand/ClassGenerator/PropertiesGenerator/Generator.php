@@ -34,7 +34,7 @@ class Generator
             }
 
             if (true === is_a($type, HasManyType::class)) {
-                $doctypeType = $classNamespace->simplifyName($type->name);
+                $doctypeType = $classNamespace->simplifyName($typeName);
                 $classNamespace->addUse(DoctrineTypeEnum::COLLECTION);
                 $classProperty = $classType->addProperty($name)->setPrivate()->setType(DoctrineTypeEnum::COLLECTION);
                 $classProperty->addComment("@var Collection<int, $doctypeType>");
