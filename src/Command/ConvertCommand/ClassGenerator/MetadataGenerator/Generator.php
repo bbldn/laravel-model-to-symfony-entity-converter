@@ -41,12 +41,16 @@ class Generator
         ]);
 
         foreach ($classType->getProperties() as $classProperty) {
-            $name = StringHelper::camelCaseToSnakeCase($classProperty->getName());
-            if (false === key_exists($name, $entity->properties)) {
-                continue;
+            $name = $classProperty->getName();
+            $properties = $entity->properties;
+            if (false === key_exists($name, $properties)) {
+                $name = StringHelper::camelCaseToSnakeCase($name);
+                if (false === key_exists($name, $properties)) {
+                    continue;
+                }
             }
 
-            $entityProperty = $entity->properties[$name];
+            $entityProperty = $properties[$name];
 
             /* Primary Key | Start */
             if (true === $entityProperty->isPrimary) {
@@ -61,8 +65,8 @@ class Generator
             /* Autoincrement | End */
 
             $propertyType = $entityProperty->type;
-            switch (get_class($propertyType)) {
-                case SimpleType::class:
+            switch (true) {
+                case is_a($propertyType, SimpleType::class):
                     /** @var SimpleType $propertyType */
 
                     /* Column | Start */
@@ -83,7 +87,7 @@ class Generator
                     /* Column | End */
 
                     break;
-                case HasOneType::class:
+                case is_a($propertyType, HasOneType::class):
                     /** @var HasOneType $propertyType */
 
                     /* ManyToOne | Start */
@@ -109,7 +113,7 @@ class Generator
                     /* JoinColumn | End */
 
                     break;
-                case HasManyType::class:
+                case is_a($propertyType, HasManyType::class):
                     /** @var HasManyType $propertyType */
 
                     /* OneToMany | Start */

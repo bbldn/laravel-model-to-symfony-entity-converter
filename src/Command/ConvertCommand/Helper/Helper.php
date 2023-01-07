@@ -2,7 +2,6 @@
 
 namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Helper;
 
-use ReflectionClass;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Entity;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasOneType;
 use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\HasManyType;
@@ -10,11 +9,24 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\H
 final class Helper
 {
     /**
+     * @param string $fullClassName
+     * @return array{0: string, 1: string}
+     */
+    public static function getNamespaceAndShortClassName(string $fullClassName): array
+    {
+        $array = explode('\\', $fullClassName);
+
+        $index = count($array) - 1;
+
+        $shortClassName = $array[$index];
+        $namespace = implode('\\', array_splice($array, 0, $index));
+
+        return [$namespace, $shortClassName];
+    }
+
+    /**
      * @param array<string, Entity> $entityMap
      * @return void
-     *
-     * @noinspection PhpDocMissingThrowsInspection
-     * @noinspection PhpUnhandledExceptionInspection
      */
     public static function fillMappedByAndInversedBy(array $entityMap): void
     {
@@ -27,10 +39,7 @@ final class Helper
                         /** @var HasOneType $type */
                         $inversedBy = $type->inversedBy;
                         if (null === $inversedBy) {
-                            /** @psalm-var class-string $className */
-                            $className = $type->name;
-                            $reflectionClass = new ReflectionClass($className);
-                            $shortClassName = $reflectionClass->getShortName();
+                            [, $shortClassName] = self::getNamespaceAndShortClassName($type->name);
                             if (true === key_exists($shortClassName, $entityMap)) {
                                 foreach ($entityMap[$shortClassName]->properties as $property) {
                                     $rType = $property->type;
@@ -48,10 +57,7 @@ final class Helper
                         /** @var HasManyType $type */
                         $mappedBy = $type->mappedBy;
                         if (null === $mappedBy) {
-                            /** @psalm-var class-string $className */
-                            $className = $type->name;
-                            $reflectionClass = new ReflectionClass($className);
-                            $shortClassName = $reflectionClass->getShortName();
+                            [, $shortClassName] = self::getNamespaceAndShortClassName($type->name);
                             if (true === key_exists($shortClassName, $entityMap)) {
                                 $properties = $entityMap[$shortClassName]->properties;
 

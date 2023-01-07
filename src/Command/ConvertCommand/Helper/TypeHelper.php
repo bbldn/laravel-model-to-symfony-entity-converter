@@ -67,12 +67,12 @@ final class TypeHelper
     {
         $map = [
             'int' => 'Types::INTEGER',
-            'bool' => 'Types::BOOLEAN',
             'float' => 'Types::FLOAT',
-            'integer' => 'Types::INTEGER',
-            'boolean' => 'Types::BOOLEAN',
+            'bool' => 'Types::BOOLEAN',
             'double' => 'Types::FLOAT',
             'string' => 'Types::STRING',
+            'integer' => 'Types::INTEGER',
+            'boolean' => 'Types::BOOLEAN',
             'date' => 'Types::DATETIME_IMMUTABLE',
             'real' => 'Types::DATETIME_IMMUTABLE',
             'datetime' => 'Types::DATETIME_IMMUTABLE',

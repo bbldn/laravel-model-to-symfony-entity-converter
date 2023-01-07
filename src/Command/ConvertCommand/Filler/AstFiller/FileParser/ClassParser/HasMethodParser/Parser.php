@@ -2,7 +2,6 @@
 
 namespace BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\Filler\AstFiller\FileParser\ClassParser\HasMethodParser;
 
-use ReflectionClass;
 use PhpParser\Node\Arg as NodeArg;
 use PhpParser\Node\Stmt\Return_ as StmtReturn;
 use PhpParser\Node\Identifier as NodeIdentifier;
@@ -101,21 +100,17 @@ abstract class Parser
      * @return string
      *
      * @psalm-param class-string $type
-     *
-     * @noinspection PhpDocMissingThrowsInspection
-     * @noinspection PhpUnhandledExceptionInspection
      */
     private function convertNamespace(string $type, string $oldNamespace, string $newNamespace): string
     {
-        $reflectionClass = new ReflectionClass($type);
+        [$currentNamespace, $shortClassName] = Helper::getNamespaceAndShortClassName($type);
 
         $oldNamespace = trim($oldNamespace, '\\');
-        $currentNamespace = trim($reflectionClass->getNamespaceName(), '\\');
         if ($currentNamespace !== $oldNamespace) {
             return $type;
         }
 
-        return trim($newNamespace, '\\') . '\\' . $reflectionClass->getShortName();
+        return trim($newNamespace, '\\') . '\\' . $shortClassName;
     }
 
     /**

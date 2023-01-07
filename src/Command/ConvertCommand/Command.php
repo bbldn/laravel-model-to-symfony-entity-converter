@@ -23,16 +23,8 @@ class Command extends Base
      */
     protected function configure(): void
     {
-        $this->addArgument(
-            name: 'inputNamespace',
-            mode: InputArgument::OPTIONAL,
-            default: 'App\Common\Domain\Model',
-        );
-        $this->addArgument(
-            name: 'exportNamespace',
-            mode: InputArgument::OPTIONAL,
-            default: 'App\Common\Domain\DoctrineEntity',
-        );
+        $this->addArgument('inputNamespace', InputArgument::REQUIRED);
+        $this->addArgument('exportNamespace', InputArgument::REQUIRED);
     }
 
     /**
@@ -86,6 +78,11 @@ class Command extends Base
         $oldNamespace = $input->getArgument('inputNamespace');
         $newNamespace = $input->getArgument('exportNamespace');
         $exportPath = $this->getExportPath($newNamespace, $classLoader);
+        if (null === $exportPath) {
+            $output->writeln('Unable to determine export path');
+
+            return self::FAILURE;
+        }
 
         $astFiller = new AstFiller();
         $reflectionFiller = new ReflectionFiller();

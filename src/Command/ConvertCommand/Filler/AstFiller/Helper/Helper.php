@@ -78,6 +78,22 @@ final class Helper
         return $className;
     }
 
+    /**
+     * @param string $fullClassName
+     * @return array{0: string, 1: string}
+     */
+    public static function getNamespaceAndShortClassName(string $fullClassName): array
+    {
+        $array = explode('\\', $fullClassName);
+
+        $index = count($array) - 1;
+
+        $shortClassName = $array[$index];
+        $namespace = implode('\\', array_splice($array, 0, $index));
+
+        return [$namespace, $shortClassName];
+    }
+
     private function __construct()
     {
     }
