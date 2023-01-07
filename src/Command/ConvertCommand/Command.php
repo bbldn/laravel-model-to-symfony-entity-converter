@@ -33,11 +33,6 @@ class Command extends Base
             mode: InputArgument::OPTIONAL,
             default: 'App\Common\Domain\DoctrineEntity',
         );
-        $this->addArgument(
-            name: 'repositoryNamespace',
-            mode: InputArgument::OPTIONAL,
-            default: 'App\Common\Infrastructure\Controller\DoctrineRepository',
-        );
     }
 
     /**
@@ -53,9 +48,7 @@ class Command extends Base
         $currentNamespace = '';
         $parts = explode('\\', $exportNamespace);
         foreach ($parts as $index => $part) {
-            if (mb_strlen($currentNamespace) > 0) {
-                $currentNamespace = '\\' . $part;
-            }
+            $currentNamespace .= $part . '\\';
 
             if (true === key_exists($currentNamespace, $map)) {
                 $firstPart = $map[$currentNamespace];
@@ -79,17 +72,21 @@ class Command extends Base
      * @param OutputInterface $output
      * @return int
      *
-     * @noinspection PhpIncludeInspection
      * @noinspection PhpDocMissingThrowsInspection
      * @noinspection PhpUnhandledExceptionInspection
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $currentDir = getcwd();
+        $classLoaderPath = getcwd() . '/vendor/autoload.php';
+        if (false === file_exists($classLoaderPath)) {
+            $output->writeln('File vendor/autoload.php not found');
+
+            return self::FAILURE;
+        }
 
         /** @var ClassLoader $classLoader */
         /** @psalm-suppress UnresolvableInclude */
-        $classLoader = require "$currentDir/vendor/autoload.php";
+        $classLoader = require $classLoaderPath;
 
         $oldNamespace = $input->getArgument('inputNamespace');
         $newNamespace = $input->getArgument('exportNamespace');
@@ -122,7 +119,7 @@ class Command extends Base
         foreach ($entityMap as $entity) {
             file_put_contents(
                 filename: "$exportPath/$entity->name.php",
-                data: $classGenerator->generate($newNamespace, $entity)
+                data: $classGenerator->generate($newNamespace, $entity),
             );
         }
 
