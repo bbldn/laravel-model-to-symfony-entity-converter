@@ -9,19 +9,33 @@ use BBLDN\LaravelModelToSymfonyEntityConverter\Command\ConvertCommand\DTO\Type\H
 final class Helper
 {
     /**
-     * @param string $fullClassName
-     * @return array{0: string, 1: string}
+     * @param Entity $entity
+     * @return void
      */
-    public static function getNamespaceAndShortClassName(string $fullClassName): array
+    public static function sortEntityProperties(Entity $entity): void
     {
-        $array = explode('\\', $fullClassName);
+        $properties = [];
+        foreach ($entity->properties as $propertyName => $property) {
+            if (true === $property->isPrimary) {
+                $properties[$propertyName] = $property;
+            }
+        }
 
-        $index = count($array) - 1;
+        foreach ($entity->properties as $propertyName => $property) {
+            if (false === $property->isPrimary) {
+                if (false === is_a($property->type, HasManyType::class)) {
+                    $properties[$propertyName] = $property;
+                }
+            }
+        }
 
-        $shortClassName = $array[$index];
-        $namespace = implode('\\', array_splice($array, 0, $index));
+        foreach ($entity->properties as $propertyName => $property) {
+            if (true === is_a($property->type, HasManyType::class)) {
+                $properties[$propertyName] = $property;
+            }
+        }
 
-        return [$namespace, $shortClassName];
+        $entity->properties = $properties;
     }
 
     /**
@@ -77,6 +91,22 @@ final class Helper
                 }
             }
         }
+    }
+
+    /**
+     * @param string $fullClassName
+     * @return array{0: string, 1: string}
+     */
+    public static function getNamespaceAndShortClassName(string $fullClassName): array
+    {
+        $array = explode('\\', $fullClassName);
+
+        $index = count($array) - 1;
+
+        $shortClassName = $array[$index];
+        $namespace = implode('\\', array_splice($array, 0, $index));
+
+        return [$namespace, $shortClassName];
     }
 
     private function __construct()
