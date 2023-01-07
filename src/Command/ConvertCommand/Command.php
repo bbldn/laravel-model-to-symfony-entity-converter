@@ -51,12 +51,7 @@ class Command extends Base
             $currentNamespace .= $part . '\\';
 
             if (true === key_exists($currentNamespace, $map)) {
-                $firstPart = $map[$currentNamespace];
-                if (true === is_array($firstPart)) {
-                    $firstPart = $firstPart[0];
-                }
-
-                $currentPath = $firstPart . DIRECTORY_SEPARATOR;
+                $currentPath = $map[$currentNamespace][0] . DIRECTORY_SEPARATOR;
                 $array = array_slice($parts, $index + 1);
                 if (count($array) > 0) {
                     $currentPath .= implode(DIRECTORY_SEPARATOR, $array);
