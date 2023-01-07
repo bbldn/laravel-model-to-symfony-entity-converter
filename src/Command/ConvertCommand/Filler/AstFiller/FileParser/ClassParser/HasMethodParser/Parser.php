@@ -20,6 +20,11 @@ abstract class Parser
     protected string $methodName = '';
 
     /**
+     * @return bool
+     */
+    abstract protected function needRemoveProperty(): bool;
+
+    /**
      * @param string $name
      * @param string $localKey
      * @param string $foreignKey
@@ -87,7 +92,8 @@ abstract class Parser
         );
 
         if (true === key_exists($localKey, $entity->properties)) {
-            if (false === $entity->properties[$localKey]->isPrimary) {
+            $entity->properties[$methodName]->isPrimary = $entity->properties[$localKey]->isPrimary;
+            if (true === $this->needRemoveProperty()) {
                 unset($entity->properties[$localKey]);
             }
         }

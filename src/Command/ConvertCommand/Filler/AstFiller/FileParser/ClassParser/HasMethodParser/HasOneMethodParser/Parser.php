@@ -11,6 +11,14 @@ class Parser extends Base
     protected string $methodName = 'hasOne';
 
     /**
+     * @return bool
+     */
+    protected function needRemoveProperty(): bool
+    {
+        return true;
+    }
+
+    /**
      * @param string $name
      * @param string $localKey
      * @param string $foreignKey
